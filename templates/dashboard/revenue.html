@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Revenue Analytics — MedLedger{% endblock %}
+
+{% block content %}
+<div class="med-topbar">
+  <div>
+    <h1 class="med-page-title">Hospital Revenue & Financial Analytics</h1>
+    <div class="text-muted small">Strictly restricted to Hospital Administrators. Audited financial turnover and collections.</div>
+  </div>
+  <div>
+    <span class="badge badge-role-admin px-3 py-2">Administrator Level</span>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="med-stat-card border-primary">
+      <div class="med-stat-label text-primary">Total Gross Billed</div>
+      <div class="med-stat-value text-primary">₹{{ stats.total_billed|default:"0.00" }}</div>
+      <small class="text-muted">{{ stats.total_invoices|default:0 }} total issued invoices</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="med-stat-card border-success">
+      <div class="med-stat-label text-success">Total Collected</div>
+      <div class="med-stat-value text-success">₹{{ stats.total_collected|default:"0.00" }}</div>
+      <small class="text-muted">{{ stats.paid_invoices|default:0 }} paid invoices</small>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="med-stat-card border-danger">
+      <div class="med-stat-label text-danger">Outstanding Receivables</div>
+      <div class="med-stat-value text-danger">₹{{ stats.total_outstanding|default:"0.00" }}</div>
+      <small class="text-muted">{{ stats.unpaid_invoices|default:0 }} pending payment</small>
+    </div>
+  </div>
+</div>
+
+<div class="med-card">
+  <div class="med-card-header">
+    <h5 class="med-card-title">Billing & Collections Audit Summary</h5>
+  </div>
+  <div class="p-4">
+    <p class="text-muted">
+      All billing computations are validated using compliant financial decimal operations according to GST regulations.
+      Invoice reports are synchronized in real-time with the hospital core accounts registry.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <tbody>
+          <tr>
+            <th style="width: 40%;">Collection Ratio</th>
+            <td>
+              {% if stats.total_billed and stats.total_billed > 0 %}
+                <span class="fw-bold text-success">
+                  {% widthratio stats.total_collected stats.total_billed 100 %}%
+                </span>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>Total Invoices Issued</th>
+            <td>{{ stats.total_invoices }}</td>
+          </tr>
+          <tr>
+            <th>Settled Invoices</th>
+            <td>{{ stats.paid_invoices }}</td>
+          </tr>
+          <tr>
+            <th>Pending Invoices</th>
+            <td>{{ stats.unpaid_invoices }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

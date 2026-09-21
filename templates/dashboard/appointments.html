@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment Scheduling — MedLedger{% endblock %}
+
+{% block content %}
+<div class="med-topbar">
+  <div>
+    <h1 class="med-page-title">Appointment Scheduling</h1>
+    <div class="text-muted small">Manage doctor consultations, time slots, and clinic bookings.</div>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="med-card mb-4">
+  <div class="p-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted">DOCTOR</label>
+        <select name="doctor" class="form-select form-select-sm">
+          <option value="">All Doctors</option>
+          {% for doc in doctors %}
+            <option value="{{ doc.id }}" {% if doctor_id == doc.id|stringformat:"s" %}selected{% endif %}>
+              Dr. {{ doc.name }} ({{ doc.department }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">DEPARTMENT</label>
+        <select name="department" class="form-select form-select-sm">
+          <option value="">All Departments</option>
+          {% for dept in departments %}
+            <option value="{{ dept }}" {% if department == dept %}selected{% endif %}>{{ dept }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">STATUS</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Statuses</option>
+          <option value="Scheduled" {% if status_filter == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+          <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+          <option value="In-Progress" {% if status_filter == 'In-Progress' %}selected{% endif %}>In-Progress</option>
+          <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">START DATE</label>
+        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">END DATE</label>
+        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+      </div>
+
+      <div class="col-md-1 d-flex gap-1">
+        <button type="submit" class="btn btn-sm btn-med-primary w-100">Filter</button>
+        {% if doctor_id or department or status_filter or start_date or end_date %}
+          <a href="{% url 'dashboard_appointments' %}" class="btn btn-sm btn-outline-secondary">✕</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Appointments Table -->
+<div class="med-card">
+  <div class="med-card-header">
+    <h5 class="med-card-title">
+      Scheduled Appointments
+      <span class="badge bg-light text-muted border ms-2">{{ page_obj.paginator.count }} total</span>
+    </h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Patient Name</th>
+          <th>Doctor</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in page_obj %}
+          <tr id="appt-row-{{ appt.id }}">
+            <td class="fw-semibold">{{ appt.date }}</td>
+            <td>{{ appt.time|time:"H:i" }}</td>
+            <td>{{ appt.patient.full_name }}</td>
+            <td>Dr. {{ appt.doctor.name }}</td>
+            <td><span class="badge bg-light text-dark border">{{ appt.doctor.department }}</span></td>
+            <td>
+              {% if appt.status == 'Scheduled' %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ appt.status }}</span>
+              {% elif appt.status == 'Completed' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">{{ appt.status }}</span>
+              {% elif appt.status == 'In-Progress' %}
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ appt.status }}</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ appt.status }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <button
+                class="btn btn-sm btn-outline-danger"
+                onclick="deleteAppointment('{{ appt.id }}')"
+                title="Delete Appointment"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">No appointments found matching your filter.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <div class="small text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function deleteAppointment(apptId) {
+  if (!confirm('Are you sure you want to cancel and delete this appointment?')) return;
+  fetch(`/api/appointments/${apptId}/`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  }).then(res => {
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      alert('Failed to delete appointment.');
+    }
+  });
+}
+</script>
+{% endblock %}

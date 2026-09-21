@@ -1,0 +1,23 @@
+{
+  "challenge_id": "medledger-hospital-001",
+  "repository_url": "https://github.com/example/medledger-hospital.git",
+  "runtime_config": {
+    "runtime_type": "python-django",
+    "image": "python:3.12-slim",
+    "install_command": "pip install -r requirements.txt",
+    "start_command": "python manage.py runserver 0.0.0.0:8000",
+    "test_command": "pytest",
+    "ports": [
+      {
+        "container_port": 8000,
+        "type": "preview"
+      }
+    ],
+    "resources": {
+      "cpu": 1,
+      "memory_mb": 2048,
+      "disk_mb": 4096,
+      "timeout_seconds": 60
+    }
+  }
+}

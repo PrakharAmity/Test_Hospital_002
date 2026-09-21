@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Registry — MedLedger{% endblock %}
+
+{% block content %}
+<div class="med-topbar">
+  <div>
+    <h1 class="med-page-title">Patient Registry</h1>
+    <div class="text-muted small">Search and browse all registered patient health records and demographics.</div>
+  </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="med-card mb-4">
+  <div class="p-3">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input
+            type="text"
+            id="patient-search-input"
+            class="form-control"
+            placeholder="Search by patient name, phone, or blood group..."
+            value="{{ query }}"
+          >
+          <button class="btn btn-med-primary" type="button" id="patient-search-button">
+            <span id="patient-search-spinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+            Search
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <form method="GET" class="d-flex gap-2">
+          <select name="blood_group" class="form-select" onchange="this.form.submit()">
+            <option value="">All Blood Groups</option>
+            {% for bg in blood_groups %}
+              <option value="{{ bg }}" {% if blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+            {% endfor %}
+          </select>
+          {% if blood_group %}
+            <a href="{% url 'dashboard_patients' %}" class="btn btn-outline-secondary">Reset</a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    <!-- Error Alert for Live Search -->
+    <div id="patient-search-error" class="alert alert-danger py-2 mt-3 small d-none"></div>
+  </div>
+</div>
+
+<!-- Patient Table -->
+<div class="med-card">
+  <div class="med-card-header">
+    <h5 class="med-card-title">
+      Registered Patients
+      <span class="badge bg-light text-muted border ms-2">Showing {{ page_obj.object_list|length }} of {{ page_obj.paginator.count }}</span>
+    </h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Full Name</th>
+          <th>Blood Group</th>
+          <th>Gender</th>
+          <th>Phone</th>
+          <th>Date of Birth</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody id="patients-tbody">
+        {% for patient in page_obj %}
+          <tr>
+            <td class="fw-semibold">{{ patient.full_name }}</td>
+            <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ patient.blood_group }}</span></td>
+            <td>{{ patient.gender }}</td>
+            <td>{{ patient.phone }}</td>
+            <td>{{ patient.date_of_birth }}</td>
+            <td>{{ patient.registered_date }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No patients found matching criteria.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if page_obj.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <div class="small text-muted">
+        Page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong>
+      </div>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if blood_group %}&blood_group={{ blood_group }}{% endif %}">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for p in page_obj.paginator.page_range %}
+          {% if p >= page_obj.number|add:"-2" and p <= page_obj.number|add:"2" %}
+            <li class="page-item {% if page_obj.number == p %}active{% endif %}">
+              <a class="page-link" href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}{% if blood_group %}&blood_group={{ blood_group }}{% endif %}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if blood_group %}&blood_group={{ blood_group }}{% endif %}">Next</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/patient_search.js' %}"></script>
+{% endblock %}
