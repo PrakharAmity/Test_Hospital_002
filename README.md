@@ -1,3 +1,4 @@
+
 # MedLedger — Hospital Management & Patient Records Dashboard
 
 MedLedger is an interactive, production-grade Hospital Management and Patient Records Dashboard designed for doctors, receptionists, hospital administrators, and healthcare staff. It enables healthcare organizations to manage patient registrations, doctor appointment scheduling, prescription generation, commercial billing with GST compliance, and audited financial analytics through a modern offline-first Django web application.
@@ -92,59 +93,7 @@ Once all issues are resolved:
 
 ---
 
-## 4. Installation Guide
-
-### Prerequisites
-- Python 3.12+
-- Git
-
-### 1. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Apply Database Migrations
-```bash
-python manage.py migrate
-```
-
-### 3. Load Seed Fixtures
-```bash
-python manage.py loaddata fixtures/seed_data.json
-```
-
-### 4. Run Development Server
-```bash
-python manage.py runserver 0.0.0.0:8000
-```
-The application will be accessible at `http://localhost:8000/`.
-
-### 5. Run Automated Tests
-```bash
-pytest
-```
-
----
-
-## 5. Built-in Challenge & Solution Mode Helper
-
-For automated benchmark runners and evaluation engines:
-
-- **Switch to Solution Mode** (all bugs fixed, 36/36 tests pass):
-  ```bash
-  python manage.py toggle_bugs --fixed
-  pytest
-  ```
-
-- **Switch to Challenge Mode** (6 intentional bugs active, 30 pass / 6 fail):
-  ```bash
-  python manage.py toggle_bugs --bugs
-  pytest
-  ```
-
----
-
-## 6. Seed Credentials
+## 4. Seed Credentials
 
 | Role | Username | Password |
 | :--- | :--- | :--- |
